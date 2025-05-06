@@ -5,6 +5,10 @@ import { generateEmailSubject, generateEmailBody } from '../src/generateEmail.js
 import { transporter } from '../src/mailer.js';
 
 export default async function handler(req, res) {
+    const auth = req.headers.authorization?.split(' ')[1];
+    if (auth !== process.env.SCHEDULER_TOKEN) {
+      return res.status(401).end('Unauthorized');
+    }
   let client;
   try {
     // 1) Connect to MongoDB
