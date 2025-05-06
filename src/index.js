@@ -6,7 +6,6 @@ import { config } from '../src/config.js';
 import { generateEmailSubject, generateEmailBody } from '../src/generateEmail.js';
 import { transporter } from '../src/mailer.js';
 
-
 async function startPolling() {
   // 1) Connect to MongoDB
   const client = new MongoClient(config.mongoUri, { useUnifiedTopology: true });
