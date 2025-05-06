@@ -1,31 +1,34 @@
 // api/send-emails.js
 import { MongoClient } from 'mongodb';
-import { config } from './src/config.js';
-import { generateEmailSubject, generateEmailBody } from './src/generateEmail.js';
-import { transporter } from './src/mailer.js';
+import { config } from '../src/config.js';
+import { generateEmailSubject, generateEmailBody } from '../src/generateEmail.js';
+import { transporter } from '../src/mailer.js';
 
 export default async function handler(req, res) {
-    const auth = req.headers.authorization?.split(' ')[1];
-    if (auth !== process.env.SCHEDULER_TOKEN) {
-      return res.status(401).end('Unauthorized');
-    }
+  // 1) Auth check against your schedulerToken
+  const auth = req.headers.authorization?.split(' ')[1];
+  if (auth !== config.schedulerToken) {
+    return res.status(401).end('Unauthorized');
+  }
+
   let client;
   try {
-    // 1) Connect to MongoDB
-    client = new MongoClient(config.mongoUri);
+    // 2) Connect to MongoDB
+    client = new MongoClient(config.mongoUri /*, you can omit useUnifiedTopology now */);
     await client.connect();
     const col = client.db(config.dbName).collection('user_queries');
+    console.log('✅ Connected to MongoDB');
 
-    // 2) Find all docs that haven’t been emailed
+    // 3) Fetch unsent entries
     const unsent = await col.find({ emailSent: { $ne: true } }).toArray();
     let sentCount = 0;
 
     for (const doc of unsent) {
-      // 3) Generate subject & body
+      // 4) Generate content
       const subject = await generateEmailSubject(doc);
       const body    = await generateEmailBody(doc);
 
-      // 4) Send via Zoho SMTP
+      // 5) Send via Zoho SMTP
       await transporter.sendMail({
         from:    config.zohoUser,
         to:      doc.email,
@@ -33,7 +36,7 @@ export default async function handler(req, res) {
         text:    body,
       });
 
-      // 5) Mark as sent
+      // 6) Mark as sent
       await col.updateOne(
         { _id: doc._id },
         { $set: { emailSent: true, sentAt: new Date() } }
@@ -43,7 +46,7 @@ export default async function handler(req, res) {
       console.log(`📧 Sent to ${doc.email}`);
     }
 
-    // 6) Return JSON so you can see the count in Vercel logs
+    // 7) Return count for logs
     return res.status(200).json({ sent: sentCount });
   } catch (err) {
     console.error('❌ Error in send-emails handler:', err);

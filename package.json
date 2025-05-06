@@ -1,10 +1,12 @@
 {
-  "name": "email-automation-",
+  "name": "email-automation",
   "version": "1.0.0",
   "type": "module",
-  "main": "node src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+     "dev": "vercel dev",
+     "start": "vercel dev",
+     "local": "node src/index.js"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +18,9 @@
     "mongodb": "^6.16.0",
     "node-cron": "^3.0.3",
     "nodemailer": "^7.0.2"
-  }
+    
+  },
+  "devDependencies": {
+   "nodemon": "^3.0.3"         
+ }
 }

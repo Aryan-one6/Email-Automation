@@ -1,0 +1,16 @@
+{
+    "crons": [
+      {
+        "path": "/api/send-emails",
+        "schedule": "*/5 * * * *"
+      }
+    ],
+
+    "functions": {
+    "api/send-emails.js": {
+      "memory": 128,               
+      "maxDuration": 10           
+    }
+  }
+  }
+  

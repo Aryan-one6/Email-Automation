@@ -2,9 +2,9 @@
 import { MongoClient } from 'mongodb';
 import cron from 'node-cron';
 // api/send-emails.js
-import { config } from '../src/config.js';
-import { generateEmailSubject, generateEmailBody } from '../src/generateEmail.js';
-import { transporter } from '../src/mailer.js';
+import { config } from './config.js';
+import { generateEmailSubject, generateEmailBody } from './generateEmail.js';
+import { transporter } from './mailer.js';
 
 async function startPolling() {
   // 1) Connect to MongoDB

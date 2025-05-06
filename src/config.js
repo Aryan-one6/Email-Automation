@@ -11,5 +11,6 @@ export const config = {
   geminiKey:  process.env.GEMINI_API_KEY,
   zohoUser:   process.env.ZOHO_USER,
   zohoPass:   process.env.ZOHO_PASS,
-  cronSchedule: '*/2 * * * *'
+  schedulerToken:  process.env.SCHEDULER_TOKEN,
+  cronSchedule: '*/5 * * * *'
 };
