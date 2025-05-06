@@ -1,9 +1,8 @@
 {
     "version": 2,
     "functions": {
-      "api/send-emails.js": {
-        "runtime": "nodejs18.x"
-      }
+        "api/send-emails.js": { "runtime": "nodejs18.x" }
+
     },
     "crons": [
       {

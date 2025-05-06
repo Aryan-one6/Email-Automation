@@ -1,8 +1,8 @@
 // api/send-emails.js
 import { MongoClient } from 'mongodb';
-import { config } from '../src/config.js';
-import { generateEmailSubject, generateEmailBody } from '../src/generateEmail.js';
-import { transporter } from '../src/mailer.js';
+import { config } from './src/config.js';
+import { generateEmailSubject, generateEmailBody } from './src/generateEmail.js';
+import { transporter } from './src/mailer.js';
 
 export default async function handler(req, res) {
     const auth = req.headers.authorization?.split(' ')[1];
