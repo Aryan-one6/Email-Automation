@@ -10,7 +10,7 @@ async function startPolling() {
   const client = new MongoClient(config.mongoUri, { useUnifiedTopology: true });
   await client.connect();
   const col = client.db(config.dbName).collection('user_queries');
-  console.log('✅ Connected to MongoDB, polling every 2 minutes…');
+  console.log('✅ Connected to MongoDB, polling every 5 minutes…');
 
   // 2) Schedule the job
   cron.schedule(config.cronSchedule, async () => {

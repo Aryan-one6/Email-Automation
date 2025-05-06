@@ -3,7 +3,7 @@ name: Trigger Send Emails
 # runs every 2 minutes
 on:
   schedule:
-    - cron: '*/2 * * * *'
+    - cron: '*/5 * * * *'
 
 jobs:
   hit-endpoint:
