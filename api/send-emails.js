@@ -12,54 +12,49 @@ export default async function handler(req, res) {
   console.log('🔍 authQuery:',  authQuery);
   console.log('🔍 config.schedulerToken:', config.schedulerToken);
 
-  // allow if **either** matches
   if (authHeader !== config.schedulerToken && authQuery !== config.schedulerToken) {
     return res.status(401).end('Unauthorized');
   }
 
   let client;
+  let sentCount = 0;
   try {
     // 2) Connect to MongoDB
-    client = new MongoClient(config.mongoUri /*, you can omit useUnifiedTopology now */);
+    client = new MongoClient(config.mongoUri);
     await client.connect();
     const col = client.db(config.dbName).collection('user_queries');
     console.log('✅ Connected to MongoDB');
 
-    // 3) Fetch unsent entries
-    const unsent = await col.find({ emailSent: { $ne: true } }).toArray();
-    let sentCount = 0;
+    // 3) Atomically claim and process one record per invocation
+    const batchSize = 1;
+    while (sentCount < batchSize) {
+      // Find and mark in one atomic operation
+      const result = await col.findOneAndUpdate(
+        { emailSent: { $ne: true } },
+        { $set: { emailSent: true, sentAt: new Date() } },
+        { returnDocument: 'before' }
+      );
+      const doc = result.value;
+      if (!doc) break;
 
-    for (const doc of unsent) {
       // 4) Generate content
       const subject = await generateEmailSubject(doc);
-      const body = await generateEmailBody(doc);
+      const body    = await generateEmailBody(doc);
 
       // 5) Send via Zoho SMTP
       await transporter.sendMail({
-        from: {
-          name:    'Triad Flair',
-          address: config.zohoUser    // "connect@triadflair.com"
-        },
-        envelope: {
-          from:    config.zohoUser,   // ensures the SMTP envelope uses the same address
-          to:      doc.email
-        },
-        to:      doc.email,
-        subject: subject,
-        text:    body
+        from: { name: 'Triad Flair', address: config.zohoUser },
+        envelope: { from: config.zohoUser, to: doc.email },
+        to: doc.email,
+        subject,
+        text: body
       });
 
-      // 6) Mark as sent
-      await col.updateOne(
-        { _id: doc._id },
-        { $set: { emailSent: true, sentAt: new Date() } }
-      );
-
-      sentCount++;
       console.log(`📧 Sent to ${doc.email}`);
+      sentCount++;
     }
 
-    // 7) Return count for logs
+    // 6) Return count for logs
     return res.status(200).json({ sent: sentCount });
   } catch (err) {
     console.error('❌ Error in send-emails handler:', err);
