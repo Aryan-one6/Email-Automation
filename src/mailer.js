@@ -2,6 +2,8 @@
 import nodemailer from 'nodemailer';
 import { config } from './config.js';
 
+const { ZOHO_USER, ZOHO_PASS } = config;
+
 // src/mailer.js
 export const transporter = nodemailer.createTransport({
     host: 'smtp.zoho.in',
@@ -12,7 +14,11 @@ export const transporter = nodemailer.createTransport({
       pass: config.zohoPass
     },
     logger: true,    // log to console
-    debug:  true     // include SMTP traffic in the logs
+    debug:  true, 
+    defaults: {
+      from: `"Triad Flair" <${ZOHO_USER}>`
+    }   
+    // include SMTP traffic in the logs
   });
   console.log('Using Zoho user:', config.zohoUser);
   console.log('Using Zoho pass:',   config.zohoPass.replace(/./g, '*'));

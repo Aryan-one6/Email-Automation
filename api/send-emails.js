@@ -26,14 +26,21 @@ export default async function handler(req, res) {
     for (const doc of unsent) {
       // 4) Generate content
       const subject = await generateEmailSubject(doc);
-      const body    = await generateEmailBody(doc);
+      const body = await generateEmailBody(doc);
 
       // 5) Send via Zoho SMTP
       await transporter.sendMail({
-        from:    config.zohoUser,
+        from: {
+          name:    'Triad Flair',
+          address: config.zohoUser    // "connect@triadflair.com"
+        },
+        envelope: {
+          from:    config.zohoUser,   // ensures the SMTP envelope uses the same address
+          to:      doc.email
+        },
         to:      doc.email,
-        subject,
-        text:    body,
+        subject: subject,
+        text:    body
       });
 
       // 6) Mark as sent
