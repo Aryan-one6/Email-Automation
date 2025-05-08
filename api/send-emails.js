@@ -6,8 +6,14 @@ import { transporter } from '../src/mailer.js';
 
 export default async function handler(req, res) {
   // 1) Auth check against your schedulerToken
-  const auth = req.headers.authorization?.split(' ')[1];
-  if (auth !== config.schedulerToken) {
+  const authHeader = req.headers.authorization?.split(' ')[1];
+  const authQuery  = req.query.token;
+  console.log('🔍 authHeader:', authHeader);
+  console.log('🔍 authQuery:',  authQuery);
+  console.log('🔍 config.schedulerToken:', config.schedulerToken);
+
+  // allow if **either** matches
+  if (authHeader !== config.schedulerToken && authQuery !== config.schedulerToken) {
     return res.status(401).end('Unauthorized');
   }
 
