@@ -60,6 +60,15 @@ export default async function handler(req, res) {
           { _id: doc._id, emailSent: { $ne: true } },
           { $set: { emailSent: true, sentAt: new Date() } }
         );
+        
+        if (update.matchedCount === 0) {
+          console.warn(`⚠️ No matching document found for _id: ${doc._id}`);
+        } else if (update.modifiedCount === 0) {
+          console.warn(`⚠️ Document found but not updated (already sent?): ${doc._id}`);
+        } else {
+          console.log(`✅ Marked ${doc.email} as sent`);
+        }
+        
 
         if (update.modifiedCount === 1) {
           console.log(`✅ Marked ${doc.email} as sent`);
