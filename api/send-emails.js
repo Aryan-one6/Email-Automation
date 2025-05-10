@@ -2,12 +2,6 @@ import { MongoClient } from 'mongodb';
 import { config } from '../src/config.js';
 import { generateEmailSubject, generateEmailBody } from '../src/generateEmail.js';
 import { transporter } from '../src/mailer.js';
-import crypto from 'crypto';
-
-function generateEmailHash(email, services = []) {
-  const normalized = [...services].sort().join(',').trim().toLowerCase();
-  return crypto.createHash('sha256').update(`${email}-${normalized}`).digest('hex');
-}
 
 export default async function handler(req, res) {
   const authHeader = req.headers.authorization?.split(' ')[1];
@@ -27,19 +21,17 @@ export default async function handler(req, res) {
     const col = client.db(config.dbName).collection('user_queries');
     console.log('✅ Connected to MongoDB');
 
-    const unsent = await col.find({ emailSent: { $ne: true } }).toArray();
-    console.log('🔍 unsent count:', unsent.length);
+    const unsent = await col.aggregate([
+      { $match: { emailSent: { $ne: true } } },
+      { $group: { _id: '$email', doc: { $first: '$$ROOT' } } },
+      { $replaceRoot: { newRoot: '$doc' } }
+    ]).toArray();
+
+    console.log('🔍 unique unsent count:', unsent.length);
     let sentCount = 0;
 
     for (const doc of unsent) {
       try {
-        const hash = generateEmailHash(doc.email, doc.services || []);
-        const existing = await col.findOne({ sentHash: hash });
-        if (existing) {
-          console.log(`⏩ Skipping ${doc.email} - same services already emailed.`);
-          continue;
-        }
-
         const subject = await generateEmailSubject(doc).catch(err => {
           console.error('❌ Failed to generate subject:', err.message);
           return 'Thanks for reaching out to Triad Flair';
@@ -64,13 +56,17 @@ export default async function handler(req, res) {
           text: body
         });
 
-        await col.updateOne(
-          { _id: doc._id },
-          { $set: { emailSent: true, sentAt: new Date(), sentHash: hash } }
+        const update = await col.updateOne(
+          { _id: doc._id, emailSent: { $ne: true } },
+          { $set: { emailSent: true, sentAt: new Date() } }
         );
 
-        sentCount++;
-        console.log(`📧 Sent to ${doc.email}`);
+        if (update.modifiedCount === 1) {
+          console.log(`✅ Marked ${doc.email} as sent`);
+          sentCount++;
+        } else {
+          console.warn(`⚠️ Document for ${doc.email} was already updated or failed.`);
+        }
       } catch (innerErr) {
         console.error(`❌ Failed for ${doc.email}:`, innerErr.message);
         continue;

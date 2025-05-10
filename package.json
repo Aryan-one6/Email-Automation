@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-     "dev": "vercel dev",
-     "start": "vercel dev",
-     "local": "node src/index.js"
+    "dev": "vercel dev",
+    "start": "vercel dev",
+    "local": "node src/index.js"
   },
   "keywords": [],
   "author": "",
@@ -15,12 +15,12 @@
   "dependencies": {
     "@google/genai": "^0.12.0",
     "dotenv": "^16.5.0",
+    "flyctl": "^1.2.2",
     "mongodb": "^6.16.0",
     "node-cron": "^3.0.3",
     "nodemailer": "^7.0.2"
-    
   },
   "devDependencies": {
-   "nodemon": "^3.0.3"         
- }
+    "nodemon": "^3.0.3"
+  }
 }
